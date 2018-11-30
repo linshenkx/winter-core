@@ -6,9 +6,9 @@ import java.lang.annotation.*;
  * @version V1.0
  * @author: lin_shen
  * @date: 18-11-28
- * @Description: TODO
+ * @Description: 依赖注入的注解，目前只实现 Field 注入
  */
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Autowired {
