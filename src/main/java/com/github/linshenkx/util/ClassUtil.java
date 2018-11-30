@@ -21,50 +21,29 @@ import java.util.jar.JarFile;
 public class ClassUtil {
 
     /**
-     * 取得某个接口下所有实现这个接口的类
+     * 首字母转小写
+     * @param s
+     * @return
      */
-    public static List<Class> getAllClassByInterface(Class c) {
-        List<Class> returnClassList = null;
-
-        if (c.isInterface()) {
-            // 获取当前的包名
-            String packageName = c.getPackage().getName();
-            // 获取当前包下以及子包下所以的类
-            List<Class<?>> allClass = getClasses(packageName);
-            if (allClass != null) {
-                returnClassList = new ArrayList<Class>();
-                for (Class classes : allClass) {
-                    // 判断是否是同一个接口
-                    if (c.isAssignableFrom(classes)) {
-                        // 本身不加入进去
-                        if (!c.equals(classes)) {
-                            returnClassList.add(classes);
-                        }
-                    }
-                }
-            }
+    public static String toLowerCaseFirstOne(String s) {
+        if (Character.isLowerCase(s.charAt(0))) {
+            return s;
+        } else {
+            return Character.toLowerCase(s.charAt(0)) + s.substring(1);
         }
-
-        return returnClassList;
     }
 
-    /*
-     * 取得某一类所在包的所有类名 不含迭代
+    /**
+     * 获取clazz的所有父类（非Object）
+     * @param clazz
+     * @return
      */
-    public static String[] getPackageAllClassName(String classLocation, String packageName) {
-        // 将packageName分解
-        String[] packagePathSplit = packageName.split("[.]");
-        String realClassLocation = classLocation;
-        int packageLength = packagePathSplit.length;
-        for (int i = 0; i < packageLength; i++) {
-            realClassLocation = realClassLocation + File.separator + packagePathSplit[i];
+    public static List<Class> getSuperClassList(Class clazz){
+        List<Class> superClassList=new ArrayList();
+        for(Class superClass = clazz.getSuperclass(); ((superClass!=null)&&(!"Object".equals(superClass.getSimpleName()))); superClass=superClass.getSuperclass()){
+            superClassList.add(superClass);
         }
-        File packeageDir = new File(realClassLocation);
-        if (packeageDir.isDirectory()) {
-            String[] allClassName = packeageDir.list();
-            return allClassName;
-        }
-        return null;
+        return superClassList;
     }
 
     /**

@@ -19,8 +19,8 @@ public class ClassPathAnnotationApplicationContextTest {
         ClassPathAnnotationApplicationContext classPathAnnotationApplicationContext=new ClassPathAnnotationApplicationContext(this.getClass().getPackage().getName());
         try {
             HelloController helloController = (HelloController) classPathAnnotationApplicationContext.getBean(HelloController.class,"helloController",false);
-            System.out.println(helloController.helloDefault(""));
-            System.out.println(helloController.hello("lin"));
+            System.out.println(helloController.helloDefault("lin"));
+            System.out.println(helloController.hello1("lin"));
             System.out.println(helloController.hello2("lin"));
 
         } catch (Exception e) {

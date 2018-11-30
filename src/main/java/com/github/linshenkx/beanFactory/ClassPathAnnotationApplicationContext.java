@@ -4,6 +4,7 @@ package com.github.linshenkx.beanFactory;
 import com.github.linshenkx.annotation.Autowired;
 import com.github.linshenkx.annotation.Component;
 import com.github.linshenkx.annotation.Qualifier;
+import com.github.linshenkx.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import com.github.linshenkx.util.ClassUtil;
 
@@ -11,6 +12,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
 
 /**
  * @version V1.0
@@ -63,31 +65,31 @@ public class ClassPathAnnotationApplicationContext {
      */
     public Object getBean(Class type,String beanId,boolean force){
 
-        System.out.println("getBean,type:"+toLowerCaseFirstOne(type.getName())+",name:"+beanId);
+        System.out.println("getBean,type:"+getLowerFirstName(type)+",name:"+beanId);
 
-        Map<String,Class> beanClassMap = beanDefinationFactory.get(toLowerCaseFirstOne(type.getName()));
+        Map<String,Class> beanClassMap = beanDefinationFactory.get(getLowerFirstName(type));
 
         //如果没有此类型则直接报错
         if(beanClassMap.isEmpty()){
-            throw new RuntimeException("没有找到类型为:"+toLowerCaseFirstOne(type.getName())+"的bean");
+            throw new RuntimeException("没有找到类型为:"+getLowerFirstName(type)+"的bean");
         }
 
         if(force){
             //如果是强匹配则要求beanId必须存在
             if(beanClassMap.get(beanId)==null){
-                throw new RuntimeException("没有找到类型为:"+toLowerCaseFirstOne(type.getName())+" 指定名为："+beanId+"的bean");
+                throw new RuntimeException("没有找到类型为:"+getLowerFirstName(type)+" 指定名为："+beanId+"的bean");
             }
         }else {
             //如果不是强匹配则允许beanId不存在，但此时对应类型的bean只能有一个，将beanId修改为仅有的那一个的id
             if(beanClassMap.get(beanId)==null ){
                 if(beanClassMap.size()!=1){
-                    throw new RuntimeException("无法分辨多个同类不同名对象，类型"+toLowerCaseFirstOne(type.getName()));
+                    throw new RuntimeException("无法分辨多个同类不同名对象，类型"+getLowerFirstName(type));
                 }else {
                     beanId=beanClassMap.keySet().iterator().next();
                 }
             }
         }
-        Class targetClass=beanDefinationFactory.get(toLowerCaseFirstOne(type.getName())).get(beanId);
+        Class targetClass=beanDefinationFactory.get(getLowerFirstName(type)).get(beanId);
 
         Object targetBean=singletonbeanFactory.get(targetClass.getName());
 
@@ -98,7 +100,7 @@ public class ClassPathAnnotationApplicationContext {
         //不存在则初始化并收入管理
         try {
 
-            System.out.println("初始化type为:"+toLowerCaseFirstOne(type.getName())+",name为："+beanId+"的类");
+            System.out.println("初始化type为:"+getLowerFirstName(type)+",name为："+beanId+"的类");
 
             targetBean = initBean(type,beanId);
         } catch (InstantiationException | IllegalAccessException e) {
@@ -122,43 +124,43 @@ public class ClassPathAnnotationApplicationContext {
         for (Class classInfo : classesByPackageName) {
             Component component = (Component) classInfo.getDeclaredAnnotation(Component.class);
             if (component != null) {
-                System.out.println("|classInfo:"+toLowerCaseFirstOne(classInfo.getName()));
+                System.out.println("|classInfo:"+StringUtil.toLowerCaseFirstOne(classInfo.getName()));
 
                 //存入按类型存取的单例BeanFactory(接口和非object父类和自身类型)
                 classInfo.getAnnotatedInterfaces();
                 Class[] interfaces = classInfo.getInterfaces();
-                List<Class> superClassList = getSuperClassList(classInfo);
+                List<Class> superClassList = ClassUtil.getSuperClassList(classInfo);
                 superClassList.addAll(Arrays.asList(interfaces));
                 superClassList.add(classInfo);
 
                 System.out.println("superClassListSize:"+superClassList.size());
 
                 for (Class aClass : superClassList) {
-                    Map<String, Class> beanDefinationMap=beanDefinationFactory.get(toLowerCaseFirstOne(aClass.getName()));
+                    Map<String, Class> beanDefinationMap=beanDefinationFactory.get(StringUtil.toLowerCaseFirstOne(aClass.getName()));
                     if(beanDefinationMap==null){
                         beanDefinationMap=new HashMap<>();
                     }
 
-                    System.out.println("Type:"+toLowerCaseFirstOne(aClass.getName()));
+                    System.out.println("Type:"+StringUtil.toLowerCaseFirstOne(aClass.getName()));
 
                     if(StringUtils.isNotEmpty(component.value())){
                         //如果component有值则使用该值（对应本类classInfo的信息）
                         if (beanDefinationMap.get(getComponentName(classInfo))!=null){
-                            throw new RuntimeException("出现无法通过name区分的重复类型:"+toLowerCaseFirstOne(aClass.getName())+" "+getComponentName(classInfo));
+                            throw new RuntimeException("出现无法通过name区分的重复类型:"+StringUtil.toLowerCaseFirstOne(aClass.getName())+" "+getComponentName(classInfo));
                         }
                         //存入按指定名存取的单例BeanFactory
                         beanDefinationMap.put(getComponentName(classInfo),classInfo);
                         System.out.println("putName:"+getComponentName(classInfo));
                     }else {
                         //如果component没有值则使用当前类型名
-                        if (beanDefinationMap.get(toLowerCaseFirstOne(aClass.getName()))!=null){
-                            throw new RuntimeException("出现无法通过name区分的重复类型:"+toLowerCaseFirstOne(aClass.getName()));
+                        if (beanDefinationMap.get(StringUtil.toLowerCaseFirstOne(aClass.getName()))!=null){
+                            throw new RuntimeException("出现无法通过name区分的重复类型:"+StringUtil.toLowerCaseFirstOne(aClass.getName()));
                         }
-                        beanDefinationMap.put(toLowerCaseFirstOne(aClass.getSimpleName()),classInfo);
-                        System.out.println("putType:"+toLowerCaseFirstOne(aClass.getName()));
+                        beanDefinationMap.put(StringUtil.toLowerCaseFirstOne(aClass.getSimpleName()),classInfo);
+                        System.out.println("putType:"+StringUtil.toLowerCaseFirstOne(aClass.getName()));
                     }
 
-                    beanDefinationFactory.put(toLowerCaseFirstOne(aClass.getName()),beanDefinationMap);
+                    beanDefinationFactory.put(StringUtil.toLowerCaseFirstOne(aClass.getName()),beanDefinationMap);
 
                 }
 
@@ -185,9 +187,9 @@ public class ClassPathAnnotationApplicationContext {
             throws InstantiationException, IllegalAccessException {
 
         //如果不存在该类的真类信息，则抛出异常
-        Class<?> clazz = beanDefinationFactory.get(toLowerCaseFirstOne(type.getName())).get(beanId);
+        Class<?> clazz = beanDefinationFactory.get(getLowerFirstName(type)).get(beanId);
         if(clazz==null){
-            throw new RuntimeException("没有找到type为:"+toLowerCaseFirstOne(type.getName())+",name为："+beanId+"的类");
+            throw new RuntimeException("没有找到type为:"+getLowerFirstName(type)+",name为："+beanId+"的类");
         }
         //如果存在真类对应的实例，则直接返回
         Object targetObject=singletonbeanFactory.get(clazz.getName());
@@ -235,21 +237,15 @@ public class ClassPathAnnotationApplicationContext {
 
     }
 
-    // 首字母转小写
-    public static String toLowerCaseFirstOne(String s) {
-        if (Character.isLowerCase(s.charAt(0))) {
-            return s;
-        } else {
-            return Character.toLowerCase(s.charAt(0)) + s.substring(1);
-        }
-    }
+
+
 
     /**
      * 取出clazz上Component注解的非默认值
      * @param clazz
      * @return
      */
-    public static String getComponentName(Class clazz){
+    private static String getComponentName(Class clazz){
         Component component = (Component) clazz.getDeclaredAnnotation(Component.class);
         if(component==null){
             throw new RuntimeException("缺少Component注解");
@@ -261,12 +257,13 @@ public class ClassPathAnnotationApplicationContext {
     }
 
 
-    public List<Class> getSuperClassList(Class clazz){
-        List<Class> superClassList=new ArrayList();
-        for(Class superClass = clazz.getSuperclass(); ((superClass!=null)&&(!"Object".equals(superClass.getSimpleName()))); superClass=superClass.getSuperclass()){
-            superClassList.add(superClass);
-        }
-        return superClassList;
+    /**
+     * 取出clazz的
+     * @param clazz
+     * @return
+     */
+    private static String getLowerFirstName(Class clazz){
+        return StringUtil.toLowerCaseFirstOne(clazz.getName());
     }
 
 
